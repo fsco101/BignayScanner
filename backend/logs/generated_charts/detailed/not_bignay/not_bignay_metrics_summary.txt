@@ -1,0 +1,6 @@
+Model: not_bignay
+CSV: c:\ExpoBignay\backend\model\not_bignay_model_training.csv
+Epochs: 33
+Columns: epoch, accuracy, learning_rate, loss, val_accuracy, val_loss
+Best val_accuracy: 0.993135 (epoch 18)
+Best val_loss: 0.329861 (epoch 33)

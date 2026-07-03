@@ -1,0 +1,6 @@
+Model: leaf
+CSV: c:\ExpoBignay\backend\model\leaf_model_training.csv
+Epochs: 25
+Columns: epoch, accuracy, learning_rate, loss, top2_acc, val_accuracy, val_loss, val_top2_acc
+Best val_accuracy: 0.976864 (epoch 10)
+Best val_loss: 1.480858 (epoch 25)

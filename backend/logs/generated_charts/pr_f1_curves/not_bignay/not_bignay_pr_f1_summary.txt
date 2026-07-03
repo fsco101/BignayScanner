@@ -1,0 +1,6 @@
+Model: not_bignay
+Classes: bignay, not_bignay
+Samples evaluated: 437
+mAP@0.5-like (mean AP one-vs-rest): 0.698451
+- AP[bignay]: 0.672006
+- AP[not_bignay]: 0.724896

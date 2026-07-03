@@ -1,0 +1,6 @@
+Model: not_bignay
+Design: mAP Evaluation style (reference-matched)
+mAP@50 source: val_accuracy from training CSV
+mAP@50-95 source: proxy derived from val_loss trend (since no per-epoch mAP50-95 logged)
+Final mAP@50: 0.993135
+Final mAP@50-95: 0.943478

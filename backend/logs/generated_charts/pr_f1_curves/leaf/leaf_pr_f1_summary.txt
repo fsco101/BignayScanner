@@ -1,0 +1,6 @@
+Model: leaf
+Classes: healthy, mold
+Samples evaluated: 391
+mAP@0.5-like (mean AP one-vs-rest): 0.503593
+- AP[healthy]: 0.445016
+- AP[mold]: 0.562170

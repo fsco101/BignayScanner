@@ -1,0 +1,8 @@
+Model: Not Bignay
+Accuracy: 0.585812
+Macro Precision: 0.636327
+Macro Recall: 0.589188
+Macro F1: 0.548257
+
+- bignay: precision=0.722222, recall=0.294118, f1=0.418006, support=221
+- not_bignay: precision=0.550432, recall=0.884259, f1=0.678508, support=216

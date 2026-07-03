@@ -1,0 +1,75 @@
+{
+  "expo": {
+    "name": "Bignay Scanner",
+    "slug": "bignay-scanner",
+    "version": "1.0.0",
+    "scheme": "bignay",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#4CAF50"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app needs camera access to scan and classify Bignay fruit and leaves.",
+        "NSPhotoLibraryUsageDescription": "This app needs photo library access to upload images for classification."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#4CAF50"
+      },
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "Bignay Scanner",
+      "shortName": "Bignay",
+      "description": "Smart Bignay fruit and leaf classification app"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-updates",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Bignay Scanner to access your camera for fruit and leaf classification."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Bignay Scanner to access your photos for uploading images to classify."
+        }
+      ],
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#4CAF50"
+        }
+      ]
+    ],
+    "extra": {
+      "apiUrl": {},
+      "androidStoreUrl": {},
+      "eas": {
+        "projectId": "caa8ebf9-cddd-4332-8072-566dbe5a9e9d"
+      }
+    },
+    "owner": "chunmaru"
+  }
+}

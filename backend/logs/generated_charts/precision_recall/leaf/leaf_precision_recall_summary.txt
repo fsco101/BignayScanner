@@ -1,0 +1,9 @@
+Model: Leaf
+Accuracy: 0.439898
+Macro Precision: 0.219949
+Macro Recall: 0.500000
+Macro F1: 0.305506
+
+Per-class metrics:
+- healthy: precision=0.439898, recall=1.000000, f1=0.611012, support=172
+- mold: precision=0.000000, recall=0.000000, f1=0.000000, support=219

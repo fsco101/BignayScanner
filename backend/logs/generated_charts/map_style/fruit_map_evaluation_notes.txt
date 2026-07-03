@@ -1,0 +1,6 @@
+Model: fruit
+Design: mAP Evaluation style (reference-matched)
+mAP@50 source: val_accuracy from training CSV
+mAP@50-95 source: val_top2_acc (clipped for mAP ordering)
+Final mAP@50: 0.735590
+Final mAP@50-95: 0.730590

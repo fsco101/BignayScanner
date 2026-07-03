@@ -1,0 +1,9 @@
+Model: fruit
+Classes: good, mold, overripe, ripe, unripe
+Samples evaluated: 1096
+mAP@0.5-like (mean AP one-vs-rest): 0.215093
+- AP[good]: 0.203530
+- AP[mold]: 0.191083
+- AP[overripe]: 0.187107
+- AP[ripe]: 0.252596
+- AP[unripe]: 0.241147

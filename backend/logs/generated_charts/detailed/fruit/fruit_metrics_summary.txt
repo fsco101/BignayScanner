@@ -1,0 +1,6 @@
+Model: fruit
+CSV: c:\ExpoBignay\backend\model\fruit_model_training.csv
+Epochs: 20
+Columns: epoch, accuracy, learning_rate, loss, top2_acc, val_accuracy, val_loss, val_top2_acc
+Best val_accuracy: 0.784995 (epoch 5)
+Best val_loss: 1.652856 (epoch 20)
