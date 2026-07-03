@@ -35,6 +35,8 @@ export default function Header({ title, onMenuPress, onLogoPress, showMenu = tru
 
         {/* Right: spacer to balance layout */}
         <View style={styles.spacer} />
+        
+        <Text style={styles.watermark}>chunmaru</Text>
       </View>
     </View>
   );
@@ -77,5 +79,13 @@ const createStyles = (COLORS) => StyleSheet.create({
   },
   spacer: {
     width: 44,
+  },
+  watermark: {
+    position: 'absolute',
+    right: 8,
+    bottom: 4,
+    fontSize: 8,
+    color: 'rgba(255, 255, 255, 0.2)',
+    fontStyle: 'italic',
   },
 });
