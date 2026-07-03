@@ -20,7 +20,8 @@ const isExpoGo = Constants.appOwnership === 'expo'
 // On web, these are baked in at build time so we skip them
 // and use the same-origin URL from window.location instead.
 const getEnvApiUrl = () => {
-  if (Platform.OS === 'web') return null;
+  // Allow EXPO_PUBLIC_API_URL to override web same-origin logic
+  if (Platform.OS === 'web' && !process.env.EXPO_PUBLIC_API_URL) return null;
   const envUrl = Constants.expoConfig?.extra?.apiUrl 
     || process.env.EXPO_PUBLIC_API_URL 
     || null;
@@ -168,6 +169,10 @@ const getPossibleUrls = () => {
   }
   // For Web
   else {
+    const envUrl = process.env.EXPO_PUBLIC_API_URL;
+    if (envUrl && !urls.includes(envUrl)) {
+      urls.push(envUrl);
+    }
     const webApiUrl = getWebApiUrl();
     if (webApiUrl && !urls.includes(webApiUrl)) {
       urls.push(webApiUrl);
@@ -233,9 +238,9 @@ const clearCachedUrl = async () => {
 
 // Synchronous URL getter (uses cached or default)
 const getBaseUrl = () => {
-  // For web, derive from window location (ignores env vars)
+  // For web, use env var if available, otherwise derive from window location
   if (Platform.OS === 'web') {
-    const url = getWebApiUrl();
+    const url = process.env.EXPO_PUBLIC_API_URL || getWebApiUrl();
     if (typeof window !== 'undefined' && !window.__apiUrlLogged) {
       console.log(`[API] getBaseUrl() returning: ${url}`);
       window.__apiUrlLogged = true;
