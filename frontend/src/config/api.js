@@ -240,8 +240,11 @@ const clearCachedUrl = async () => {
 const getBaseUrl = () => {
   // For web, use env var if available, otherwise derive from window location
   if (Platform.OS === 'web') {
-    const url = process.env.EXPO_PUBLIC_API_URL || getWebApiUrl();
+    const envUrl = process.env.EXPO_PUBLIC_API_URL;
+    const url = envUrl || getWebApiUrl();
+    
     if (typeof window !== 'undefined' && !window.__apiUrlLogged) {
+      console.warn(`[API DEBUG] process.env.EXPO_PUBLIC_API_URL is currently: "${envUrl}"`);
       console.log(`[API] getBaseUrl() returning: ${url}`);
       window.__apiUrlLogged = true;
     }
