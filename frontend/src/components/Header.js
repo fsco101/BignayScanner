@@ -35,7 +35,7 @@ export default function Header({ title, onMenuPress, onLogoPress, showMenu = tru
 
         {/* Right: spacer to balance layout */}
         <View style={styles.spacer} />
-        
+
         <Text style={styles.watermark}>chunmaru</Text>
       </View>
     </View>
