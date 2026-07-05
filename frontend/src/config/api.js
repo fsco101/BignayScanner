@@ -22,8 +22,8 @@ const isExpoGo = Constants.appOwnership === 'expo'
 const getEnvApiUrl = () => {
   // Allow EXPO_PUBLIC_API_URL to override web same-origin logic
   if (Platform.OS === 'web' && !process.env.EXPO_PUBLIC_API_URL) return null;
-  const envUrl = Constants.expoConfig?.extra?.apiUrl 
-    || process.env.EXPO_PUBLIC_API_URL 
+  const envUrl = Constants.expoConfig?.extra?.apiUrl
+    || process.env.EXPO_PUBLIC_API_URL
     || null;
   return envUrl;
 };
@@ -57,12 +57,12 @@ export const getBackendUrl = () => {
 // Get the current web base URL for API (same origin to avoid CORS issues)
 const getWebApiUrl = () => {
   if (Platform.OS !== 'web') return null;
-  
+
   try {
     // In browser environment, use window.location to build same-origin API URL
     if (typeof window !== 'undefined' && window.location) {
       const { protocol, hostname, port } = window.location;
-      
+
       // Use same origin: when served through a reverse proxy / tunnel (e.g. ngrok),
       // the page is already on the backend's origin so we must NOT hardcode :5000.
       // For local dev (localhost with separate ports), fall back to the backend port.
@@ -71,13 +71,13 @@ const getWebApiUrl = () => {
         ? `${protocol}//${hostname}:${PORT}`
         : `${protocol}//${hostname}${port ? ':' + port : ''}`;
       console.log(`[API] Web platform - Frontend hostname: ${hostname}, API URL: ${apiUrl}`);
-      
+
       // Store for debugging
       if (typeof window !== 'undefined') {
         window.__BIGNAY_API_URL = apiUrl;
         window.__BIGNAY_FRONTEND_HOST = hostname;
       }
-      
+
       return apiUrl;
     }
   } catch (e) {
@@ -89,17 +89,17 @@ const getWebApiUrl = () => {
 // Get the local IP address dynamically from Expo's debugger host
 const getLocalIP = () => {
   // Try to get from Expo manifest (works with Expo Go)
-  const debuggerHost = Constants.expoConfig?.hostUri 
+  const debuggerHost = Constants.expoConfig?.hostUri
     || Constants.manifest?.debuggerHost
     || Constants.manifest2?.extra?.expoGo?.debuggerHost;
-  
+
   if (debuggerHost) {
     const ip = debuggerHost.split(':')[0];
     if (ip && ip !== 'localhost') {
       return ip;
     }
   }
-  
+
   return null;
 };
 
@@ -114,10 +114,17 @@ const getAutoDetectedBackendUrl = () => {
 };
 
 // Default request headers for all API calls
-// The ngrok header avoids browser warning/interstitial on free tier tunnels
+// The ngrok header avoids browser warning/interstitial on free tier tunnels (dev only)
+const isNgrok = () => {
+  try {
+    const url = getBaseUrl();
+    return typeof url === 'string' && url.includes('ngrok');
+  } catch { return false; }
+};
+
 export const getDefaultApiHeaders = (headers = {}) => ({
   'Accept': 'application/json',
-  'ngrok-skip-browser-warning': 'true',
+  ...(isNgrok() ? { 'ngrok-skip-browser-warning': 'true' } : {}),
   ...headers,
 });
 
@@ -136,19 +143,19 @@ const getPossibleUrls = () => {
       urls.push(localEnvUrl);
     }
   }
-  
+
   // Environment variable URL (e.g., ngrok tunnel or production)
   const envUrl = getEnvApiUrl();
   if (envUrl && !urls.includes(envUrl)) {
     urls.push(envUrl);
   }
-  
+
   // Local network URL from env (if not already added)
   const localEnvUrl = getEnvLocalApiUrl();
   if (localEnvUrl && !urls.includes(localEnvUrl)) {
     urls.push(localEnvUrl);
   }
-  
+
   // For Android
   if (Platform.OS === 'android') {
     // Emulator special IP (10.0.2.2 maps to host's localhost)
@@ -195,7 +202,7 @@ const getWorkingUrl = async () => {
   if (_cachedWorkingUrl) {
     return _cachedWorkingUrl;
   }
-  
+
   // Try to load previously working URL from storage (mobile only)
   try {
     const savedUrl = await AsyncStorage.getItem(getStorageKey());
@@ -206,7 +213,7 @@ const getWorkingUrl = async () => {
   } catch (e) {
     console.log('Could not load saved URL');
   }
-  
+
   // Return default based on platform
   if (Platform.OS === 'android') {
     return `http://10.0.2.2:${PORT}`;
@@ -242,7 +249,7 @@ const getBaseUrl = () => {
   if (Platform.OS === 'web') {
     const envUrl = process.env.EXPO_PUBLIC_API_URL;
     const url = envUrl || getWebApiUrl();
-    
+
     if (typeof window !== 'undefined' && !window.__apiUrlLogged) {
       console.warn(`[API DEBUG] process.env.EXPO_PUBLIC_API_URL is currently: "${envUrl}"`);
       console.log(`[API] getBaseUrl() returning: ${url}`);
@@ -281,7 +288,7 @@ const getBaseUrl = () => {
   if (_cachedWorkingUrl) {
     return _cachedWorkingUrl;
   }
-  
+
   // Default based on platform
   if (Platform.OS === 'android') {
     return `http://10.0.2.2:${PORT}`;
@@ -298,7 +305,7 @@ if (Platform.OS === 'web' && typeof window !== 'undefined') {
     console.log('Frontend hostname:', window.location.hostname);
     console.log('API URL being used:', currentUrl);
     console.log('Cached URL:', _cachedWorkingUrl);
-    
+
     console.log('\nTesting API connection...');
     try {
       const response = await fetch(`${currentUrl}/health`);
@@ -308,11 +315,11 @@ if (Platform.OS === 'web' && typeof window !== 'undefined') {
       console.log('✗ API Error:', error.message);
     }
     console.log('========================');
-    
-    return { 
+
+    return {
       frontendUrl: window.location.href,
       apiUrl: currentUrl,
-      cached: _cachedWorkingUrl 
+      cached: _cachedWorkingUrl
     };
   };
 }
@@ -323,12 +330,12 @@ export const API_CONFIG = {
   get BASE_URL() {
     return getBaseUrl();
   },
-  
+
   // Set base URL manually
   setBaseUrl: setWorkingUrl,
   clearCachedUrl: clearCachedUrl,
   getPossibleUrls: getPossibleUrls,
-  
+
   ENDPOINTS: {
     PREDICT: '/predict',
     CHECK_QUALITY: '/check-quality',
@@ -368,7 +375,7 @@ export const API_CONFIG = {
     HEATMAP_PIN_TYPES: '/api/heatmap/pin-types',
     HEATMAP_STATS: '/api/heatmap/stats',
   },
-  
+
   TIMEOUT: 15000, // 15 seconds (reduced for faster fallback)
   RETRY_ATTEMPTS: 2,
   RETRY_DELAY: 500, // 500ms between retries
@@ -418,23 +425,23 @@ export const COLORS = {
   warning: '#F59E0B',        // Amber warning
   info: '#2563EB',           // Blue
   success: '#16A34A',        // Success green
-  
+
   // UI Colors
   background: '#F8FAF8',     // Light green-gray
   surface: '#FFFFFF',
   surfaceVariant: '#F0F4F0', // Very light green
   card: '#FFFFFF',
-  
+
   // Text Colors
   text: '#1B1B1B',
   textSecondary: '#6B7280',
   textLight: '#9CA3AF',
   textOnPrimary: '#FFFFFF',
-  
+
   // Border & Divider
   border: '#E5E7EB',
   divider: '#F0F0F0',
-  
+
   // Status Colors
   online: '#16A34A',
   offline: '#9CA3AF',
@@ -450,7 +457,7 @@ export const QUALITY_COLORS = {
 
 export const RIPENESS_LABELS = {
   unripe: 'Unripe',
-  ripe: 'Ripe', 
+  ripe: 'Ripe',
   overripe: 'Overripe',
 };
 
@@ -468,11 +475,11 @@ export const RECOMMENDATION_ICONS = {
 export const apiRequest = async (endpoint, options = {}, retryCount = 0) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
-  
+
   try {
     const url = buildApiUrl(endpoint);
     console.log(`[API] ${options.method || 'GET'} ${url}`);
-    
+
     const response = await fetch(url, {
       ...options,
       signal: controller.signal,
@@ -481,23 +488,23 @@ export const apiRequest = async (endpoint, options = {}, retryCount = 0) => {
         ...options.headers,
       }),
     });
-    
+
     clearTimeout(timeoutId);
-    
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || errorData.message || `HTTP ${response.status}`);
     }
-    
+
     return await response.json();
   } catch (error) {
     clearTimeout(timeoutId);
-    
+
     // Handle abort/timeout
     if (error.name === 'AbortError') {
       throw new Error('Request timeout - the server took too long to respond');
     }
-    
+
     // Handle network errors with retry
     if (error.message === 'Network request failed' || error.message.includes('fetch')) {
       if (retryCount < API_CONFIG.RETRY_ATTEMPTS) {
@@ -507,7 +514,7 @@ export const apiRequest = async (endpoint, options = {}, retryCount = 0) => {
       }
       throw new Error(`Cannot connect to server at ${API_CONFIG.BASE_URL}. Please ensure the backend is running.`);
     }
-    
+
     throw error;
   }
 };

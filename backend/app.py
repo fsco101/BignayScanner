@@ -113,7 +113,7 @@ app = Flask(__name__,
 socketio = SocketIO(
     app,
     cors_allowed_origins="*",
-    async_mode='threading',
+    async_mode='gevent',
     logger=False,
     engineio_logger=False,
 )
@@ -129,7 +129,7 @@ CORS(app, resources={
     r"/*": {
         "origins": ALLOWED_ORIGINS,
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-        "allow_headers": ["Content-Type", "Authorization", "Accept", "X-Requested-With"],
+        "allow_headers": ["Content-Type", "Authorization", "Accept", "X-Requested-With", "ngrok-skip-browser-warning"],
         "expose_headers": ["Content-Type", "Authorization"],
         "supports_credentials": False,
         "max_age": 3600
