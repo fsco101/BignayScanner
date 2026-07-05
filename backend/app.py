@@ -57,8 +57,9 @@ def _get_allowed_origins() -> list[str]:
     if configured.strip():
         return [origin.strip().rstrip("/") for origin in configured.split(",") if origin.strip()]
 
-    # Default origins for local development.
+    # Default origins for local development and known production URLs.
     origins = [
+        "https://bignay-scanner.vercel.app",
         "http://localhost:5000",
         "http://127.0.0.1:5000",
         "http://localhost:19006",
