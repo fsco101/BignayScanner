@@ -380,7 +380,7 @@ export const API_CONFIG = {
     HEATMAP_STATS: '/api/heatmap/stats',
   },
 
-  TIMEOUT: 60000, // 60 seconds to allow for backend cold starts and heavy ML processing
+  TIMEOUT: 150000, // 150 seconds to allow for backend cold starts and extremely heavy ML processing
   RETRY_ATTEMPTS: 2,
   RETRY_DELAY: 500, // 500ms between retries
 };
