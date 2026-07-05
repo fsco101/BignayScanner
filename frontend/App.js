@@ -1379,8 +1379,36 @@ export default function App() {
               linking={{
                 prefixes: ['bignay://', 'exp://'],
                 config: {
-                  screens: {},
-                },
+                  screens: {
+                    Landing: '',
+                    Main: {
+                      path: '',
+                      screens: {
+                        Home: 'home',
+                        Predict: 'predict',
+                        Products: 'products',
+                        Orders: 'orders',
+                        Forum: 'forum',
+                        Profile: 'profile',
+                        HarvestMap: 'map',
+                        PricePredict: 'price-predict',
+                        Settings: 'settings',
+                        ProductDetail: 'product/:id',
+                        ForumPostDetail: 'post/:id',
+                        UserSalesTracking: 'my-sales',
+                        AdminSalesTracking: 'analytics',
+                        ForumAllPosts: 'all-posts'
+                      }
+                    },
+                    Auth: {
+                      screens: {
+                        Login: 'login',
+                        Register: 'register',
+                        ForgotPassword: 'forgot-password'
+                      }
+                    }
+                  }
+                }
               }}
               documentTitle={{
                 formatter: (options, route) => 
