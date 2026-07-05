@@ -149,6 +149,20 @@ def _add_cors_headers(response):
         response.headers["Access-Control-Max-Age"] = "3600"
     return response
 
+@app.errorhandler(Exception)
+def _handle_exception(e):
+    """Ensure CORS headers are present even on unhandled 500 errors."""
+    import traceback
+    print(f"[ERROR] Unhandled exception: {e}")
+    traceback.print_exc()
+    response = jsonify({"error": str(e)})
+    response.status_code = 500
+    origin = request.headers.get("Origin", "")
+    if origin.rstrip("/") in ALLOWED_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, Accept, X-Requested-With, ngrok-skip-browser-warning"
+    return response
+
 @app.route("/", defaults={"path": ""}, methods=["OPTIONS"])
 @app.route("/<path:path>", methods=["OPTIONS"])
 def handle_options(path):
