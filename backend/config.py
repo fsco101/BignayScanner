@@ -100,7 +100,7 @@ def get_settings() -> Settings:
         mongodb_collection=os.getenv("MONGODB_COLLECTION", "predictions"),
         host=os.getenv("HOST", "0.0.0.0"),
         port=_get_int("PORT", 5000),
-        debug=_get_bool("FLASK_DEBUG", True),
+        debug=_get_bool("FLASK_DEBUG", False),
         fruit_model_path=Path(os.getenv("FRUIT_MODEL_PATH", str(BACKEND_DIR / "model" / "fruit_model.h5"))),
         leaf_model_path=Path(os.getenv("LEAF_MODEL_PATH", str(BACKEND_DIR / "model" / "leaf_model.h5"))),
         not_bignay_model_path=Path(os.getenv("NOT_BIGNAY_MODEL_PATH", str(BACKEND_DIR / "model" / "not_bignay_model.h5"))),
