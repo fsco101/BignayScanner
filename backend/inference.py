@@ -29,7 +29,14 @@ class KerasClassifier:
         # Check for both .keras and .h5 formats
         keras_path = self._model_path.with_suffix('.keras')
         h5_path = self._model_path.with_suffix('.h5')
-        return keras_path.exists() or h5_path.exists() or self._model_path.exists()
+        if not (keras_path.exists() or h5_path.exists() or self._model_path.exists()):
+            return False
+        # Also check TensorFlow is importable
+        try:
+            import tensorflow  # noqa: F401
+            return True
+        except ImportError:
+            return False
 
     def _load(self):
         if self._model is not None:
