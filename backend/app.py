@@ -195,13 +195,27 @@ def init_database():
 
                 # Create indexes for better performance
                 app.config['db_users'].create_index('email', unique=True)
+                
+                # Product indexes
                 app.config['db_products'].create_index([('name', 'text'), ('description', 'text')])
                 app.config['db_products'].create_index('category')
                 app.config['db_products'].create_index('is_active')
+                app.config['db_products'].create_index('created_at')
+                app.config['db_products'].create_index('sales_count')
+                app.config['db_products'].create_index('average_rating')
+                app.config['db_products'].create_index('views')
+                app.config['db_products'].create_index('stock')
+                
+                # Order indexes
                 app.config['db_orders'].create_index('user_id')
                 app.config['db_orders'].create_index('status')
+                app.config['db_orders'].create_index('created_at')
+                
+                # Review indexes
                 app.config['db_reviews'].create_index('product_id')
                 app.config['db_reviews'].create_index('user_id')
+                app.config['db_reviews'].create_index('created_at')
+                app.config['db_reviews'].create_index('rating')
 
                 # Forum collection
                 app.config['db_forum'] = db['forum']
