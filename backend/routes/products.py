@@ -199,38 +199,67 @@ def list_products():
         reviews_collection = _get_reviews_collection()
         users_collection = _get_users_collection()
         
+        products_docs = list(cursor)
+        
+        # 1. Batch fetch seller images
+        seller_ids = []
+        for doc in products_docs:
+            if doc.get('seller_id') and ObjectId.is_valid(doc['seller_id']):
+                seller_ids.append(ObjectId(doc['seller_id']))
+        seller_ids = list(set(seller_ids))
+        
+        seller_map = {}
+        if users_collection is not None and seller_ids:
+            try:
+                sellers = users_collection.find({'_id': {'$in': seller_ids}}, {'profile_image': 1})
+                seller_map = {str(s['_id']): s.get('profile_image') for s in sellers}
+            except Exception as e:
+                print(f"[Products] Error fetching sellers: {e}")
+                
+        # 2. Batch fetch latest reviews
+        product_ids_str = [str(doc['_id']) for doc in products_docs]
+        reviews_map = {}
+        if reviews_collection is not None and product_ids_str:
+            try:
+                pipeline = [
+                    {'$match': {'product_id': {'$in': product_ids_str}, 'is_active': True}},
+                    {'$sort': {'created_at': -1}},
+                    {'$group': {
+                        '_id': '$product_id',
+                        'rating': {'$first': '$rating'},
+                        'comment': {'$first': '$comment'},
+                        'comment_filtered': {'$first': '$comment_filtered'},
+                        'user_name': {'$first': '$user_name'},
+                        'created_at': {'$first': '$created_at'}
+                    }}
+                ]
+                reviews = reviews_collection.aggregate(pipeline)
+                reviews_map = {str(r['_id']): r for r in reviews}
+            except Exception as e:
+                print(f"[Products] Error fetching reviews: {e}")
+        
         products = []
-        for doc in cursor:
+        for doc in products_docs:
             product = Product.from_dict(doc)
             product._id = str(doc['_id'])
             product_dict = product.to_public_dict()
             
-            # Fetch seller profile image
-            if users_collection is not None and doc.get('seller_id'):
-                try:
-                    seller_doc = users_collection.find_one(
-                        {'_id': ObjectId(doc['seller_id'])},
-                        {'profile_image': 1}
-                    )
-                    if seller_doc:
-                        product_dict['seller_profile_image'] = seller_doc.get('profile_image')
-                except Exception:
-                    pass
-            
-            # Fetch the latest review for this product
-            if reviews_collection is not None:
-                latest_review = reviews_collection.find_one(
-                    {'product_id': str(doc['_id']), 'is_active': True},
-                    sort=[('created_at', -1)]
-                )
-                if latest_review:
-                    product_dict['latest_review'] = {
-                        'rating': latest_review.get('rating', 0),
-                        'comment': latest_review.get('comment', ''),
-                        'comment_filtered': latest_review.get('comment_filtered', latest_review.get('comment', '')),
-                        'user_name': latest_review.get('user_name', 'Anonymous'),
-                        'created_at': latest_review.get('created_at').isoformat() if latest_review.get('created_at') else None
-                    }
+            # Attach seller profile image
+            seller_id_str = str(doc.get('seller_id', ''))
+            if seller_id_str in seller_map and seller_map[seller_id_str]:
+                product_dict['seller_profile_image'] = seller_map[seller_id_str]
+                
+            # Attach latest review
+            prod_id_str = product._id
+            if prod_id_str in reviews_map:
+                r = reviews_map[prod_id_str]
+                product_dict['latest_review'] = {
+                    'rating': r.get('rating', 0),
+                    'comment': r.get('comment', ''),
+                    'comment_filtered': r.get('comment_filtered', r.get('comment', '')),
+                    'user_name': r.get('user_name', 'Anonymous'),
+                    'created_at': r.get('created_at').isoformat() if r.get('created_at') else None
+                }
             
             products.append(product_dict)
         
@@ -281,23 +310,34 @@ def get_featured_products():
         
         users_collection = _get_users_collection()
         
+        # Batch fetch seller images for all featured products
+        all_featured = recent + popular + top_rated + trending
+        seller_ids = []
+        for doc in all_featured:
+            if doc.get('seller_id') and ObjectId.is_valid(doc['seller_id']):
+                seller_ids.append(ObjectId(doc['seller_id']))
+        seller_ids = list(set(seller_ids))
+        
+        seller_map = {}
+        if users_collection is not None and seller_ids:
+            try:
+                sellers = users_collection.find({'_id': {'$in': seller_ids}}, {'profile_image': 1})
+                seller_map = {str(s['_id']): s.get('profile_image') for s in sellers}
+            except Exception as e:
+                print(f"[Products] Error fetching featured sellers: {e}")
+        
         def convert_products(docs):
             products = []
             for doc in docs:
                 product = Product.from_dict(doc)
                 product._id = str(doc['_id'])
                 product_dict = product.to_public_dict()
-                # Fetch seller profile image
-                if users_collection is not None and doc.get('seller_id'):
-                    try:
-                        seller_doc = users_collection.find_one(
-                            {'_id': ObjectId(doc['seller_id'])},
-                            {'profile_image': 1}
-                        )
-                        if seller_doc:
-                            product_dict['seller_profile_image'] = seller_doc.get('profile_image')
-                    except Exception:
-                        pass
+                
+                # Attach seller profile image
+                seller_id_str = str(doc.get('seller_id', ''))
+                if seller_id_str in seller_map and seller_map[seller_id_str]:
+                    product_dict['seller_profile_image'] = seller_map[seller_id_str]
+                    
                 products.append(product_dict)
             return products
         
@@ -1204,24 +1244,34 @@ def admin_list_products():
         total = products_collection.count_documents(query)
         
         users_collection = _get_users_collection()
+        products_docs = list(cursor)
+        
+        # Batch fetch seller profile image and email
+        seller_ids = []
+        for doc in products_docs:
+            if doc.get('seller_id') and ObjectId.is_valid(doc['seller_id']):
+                seller_ids.append(ObjectId(doc['seller_id']))
+        seller_ids = list(set(seller_ids))
+        
+        seller_map = {}
+        if users_collection is not None and seller_ids:
+            try:
+                sellers = users_collection.find({'_id': {'$in': seller_ids}}, {'profile_image': 1, 'email': 1})
+                seller_map = {str(s['_id']): s for s in sellers}
+            except Exception as e:
+                print(f"[Products] Error fetching admin sellers: {e}")
+                
         products = []
-        for doc in cursor:
+        for doc in products_docs:
             product = Product.from_dict(doc)
             product._id = str(doc['_id'])
             product_dict = product.to_public_dict()
             
             # Enrich with seller profile image and email
-            if users_collection is not None and doc.get('seller_id'):
-                try:
-                    seller_doc = users_collection.find_one(
-                        {'_id': ObjectId(doc['seller_id'])},
-                        {'profile_image': 1, 'email': 1}
-                    )
-                    if seller_doc:
-                        product_dict['seller_profile_image'] = seller_doc.get('profile_image')
-                        product_dict['seller_email'] = seller_doc.get('email')
-                except Exception:
-                    pass
+            seller_id_str = str(doc.get('seller_id', ''))
+            if seller_id_str in seller_map:
+                product_dict['seller_profile_image'] = seller_map[seller_id_str].get('profile_image')
+                product_dict['seller_email'] = seller_map[seller_id_str].get('email')
             
             products.append(product_dict)
         
