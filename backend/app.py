@@ -99,6 +99,7 @@ def _get_allowed_origins() -> list[str]:
 
 
 ALLOWED_ORIGINS = _get_allowed_origins()
+print(f"[CORS] Allowed origins: {ALLOWED_ORIGINS}")
 
 FRONTEND_DIR = BACKEND_DIR.parent / "frontend"
 FRONTEND_DIST = FRONTEND_DIR / "dist"  # Expo web build output
@@ -124,7 +125,7 @@ app.url_map.strict_slashes = False
 # Set max content length to 50MB to handle large image uploads
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB
 
-# Configure CORS to allow trusted frontend origins (deployment + local dev)
+# Configure CORS
 CORS(app, resources={
     r"/*": {
         "origins": ALLOWED_ORIGINS,
@@ -135,6 +136,32 @@ CORS(app, resources={
         "max_age": 3600
     }
 })
+
+@app.after_request
+def _add_cors_headers(response):
+    """Ensure CORS headers are always present for allowed origins."""
+    origin = request.headers.get("Origin", "")
+    origin_clean = origin.rstrip("/")
+    if origin_clean in ALLOWED_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, Accept, X-Requested-With, ngrok-skip-browser-warning"
+        response.headers["Access-Control-Max-Age"] = "3600"
+    return response
+
+@app.route("/", defaults={"path": ""}, methods=["OPTIONS"])
+@app.route("/<path:path>", methods=["OPTIONS"])
+def handle_options(path):
+    """Handle all preflight OPTIONS requests."""
+    response = app.make_default_options_response()
+    origin = request.headers.get("Origin", "")
+    origin_clean = origin.rstrip("/")
+    if origin_clean in ALLOWED_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, Accept, X-Requested-With, ngrok-skip-browser-warning"
+        response.headers["Access-Control-Max-Age"] = "3600"
+    return response
 
 # Initialize MongoDB collections for new features
 def init_database():
