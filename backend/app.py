@@ -1287,4 +1287,26 @@ if __name__ == "__main__":
     print(f"  • Reviews:    /api/reviews/*")
     print("\n" + "="*60 + "\n")
     
+    # Background Model Preloader
+    def init_model_preloader():
+        import threading
+        def preload_models():
+            import time
+            time.sleep(5) # Let the server fully start and pass health checks first
+            try:
+                print("[System] Preloading machine learning models in the background...")
+                not_bignay_model._load()
+                print("[System] Not Bignay model loaded.")
+                fruit_model._load()
+                print("[System] Fruit model loaded.")
+                leaf_model._load()
+                print("[System] Leaf model loaded. All models ready!")
+            except Exception as e:
+                print(f"[System] Model preloading failed: {e}")
+                
+        thread = threading.Thread(target=preload_models, daemon=True)
+        thread.start()
+
+    init_model_preloader()
+
     socketio.run(app, host=settings.host, port=settings.port, debug=settings.debug, allow_unsafe_werkzeug=True)

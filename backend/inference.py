@@ -15,11 +15,14 @@ class ClassifierResult:
     all_probabilities: dict = field(default_factory=dict)
 
 
+import threading
+
 class KerasClassifier:
     def __init__(self, model_path: Path, classes: list[str]):
         self._model_path = model_path
         self._classes = classes
         self._model = None
+        self._lock = threading.Lock()
 
     @property
     def classes(self) -> list[str]:
@@ -39,9 +42,10 @@ class KerasClassifier:
             return False
 
     def _load(self):
-        if self._model is not None:
-            return
-        import tensorflow as tf  # lazy import
+        with self._lock:
+            if self._model is not None:
+                return
+            import tensorflow as tf  # lazy import
 
         # Try .keras format first (newer), then .h5 (legacy)
         keras_path = self._model_path.with_suffix('.keras')
