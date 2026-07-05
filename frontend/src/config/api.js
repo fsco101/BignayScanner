@@ -38,8 +38,8 @@ const getEnvLocalApiUrl = () => {
 export const getBackendUrl = () => {
   // Always use explicit env var for WebSocket/backend URL on web
   // (same-origin logic would point to Vercel, not Render)
-  const envUrl = process.env.EXPO_PUBLIC_API_URL;
-  if (envUrl) return envUrl;
+  const explicitEnvUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (explicitEnvUrl) return explicitEnvUrl;
   if (Platform.OS === 'web') {
     const webUrl = getWebApiUrl();
     if (webUrl) return webUrl;

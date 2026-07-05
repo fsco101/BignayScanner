@@ -958,7 +958,14 @@ def predict():
     quality = fruit_obj.get("quality") if fruit_obj else None
 
     # Check if the image is actually a Bignay (with image quality context)
-    current_confidence = float((fruit_obj or leaf_obj or {}).get("confidence", 0.0))
+    _raw_conf = (fruit_obj or leaf_obj or {}).get("confidence", 0.0)
+    try:
+        current_confidence = float(_raw_conf)
+        if current_confidence != current_confidence or current_confidence == float('inf'):  # NaN / inf guard
+            current_confidence = 0.0
+    except (TypeError, ValueError):
+        current_confidence = 0.0
+    current_confidence = max(0.0, min(1.0, current_confidence))
     bignay_detection = _is_bignay_image(current_confidence, features, image_quality)
 
     # ML-based not-bignay detection (pre-filter using dedicated model)
