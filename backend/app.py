@@ -76,11 +76,12 @@ def _get_allowed_origins() -> list[str]:
         s.settimeout(2)
         s.connect(('8.8.8.8', 80))
         _local_ip = s.getsockname()[0]
+        s.shutdown(_socket.SHUT_RDWR)
         s.close()
         if _local_ip and _local_ip not in ('127.0.0.1',):
             origins.append(f"http://{_local_ip}:5000")
-    except Exception:
-        pass
+    except OSError as e:
+        print(f"[CORS] Could not detect local IP: {e}")
 
     # Auto-detect ngrok tunnel URL from the frontend .env written by ngrok_tunnel.py
     try:
@@ -92,8 +93,8 @@ def _get_allowed_origins() -> list[str]:
                     if _url and _url not in origins:
                         origins.append(_url)
                     break
-    except Exception:
-        pass
+    except OSError as e:
+        print(f"[CORS] Could not read frontend .env: {e}")
 
     return origins
 
@@ -183,45 +184,48 @@ def init_database():
     if settings.mongodb_uri:
         try:
             client = MongoClient(settings.mongodb_uri, serverSelectionTimeoutMS=5000)
-            db = client[settings.mongodb_db]
-            
-            # Store collections in app config for routes to access
-            app.config['db_users'] = db['users']
-            app.config['db_products'] = db['products']
-            app.config['db_orders'] = db['orders']
-            app.config['db_reviews'] = db['reviews']
-            
-            # Create indexes for better performance
-            app.config['db_users'].create_index('email', unique=True)
-            app.config['db_products'].create_index([('name', 'text'), ('description', 'text')])
-            app.config['db_products'].create_index('category')
-            app.config['db_products'].create_index('is_active')
-            app.config['db_orders'].create_index('user_id')
-            app.config['db_orders'].create_index('status')
-            app.config['db_reviews'].create_index('product_id')
-            app.config['db_reviews'].create_index('user_id')
-            
-            # Forum collection
-            app.config['db_forum'] = db['forum']
-            app.config['db_forum'].create_index('category')
-            app.config['db_forum'].create_index('is_published')
-            app.config['db_forum'].create_index([('title', 'text'), ('content', 'text')])
-            
-            # Harvest pins collection (Harvest Map)
-            app.config['db_harvest_pins'] = db['harvest_pins']
-            app.config['db_harvest_pins'].create_index([('latitude', 1), ('longitude', 1)])
-            app.config['db_harvest_pins'].create_index('pin_type')
-            app.config['db_harvest_pins'].create_index('is_active')
-            app.config['db_harvest_pins'].create_index('created_by')
-            
-            # Notifications collection
-            app.config['db_notifications'] = db['notifications']
-            app.config['db_notifications'].create_index('user_id')
-            app.config['db_notifications'].create_index('is_read')
-            app.config['db_notifications'].create_index([('user_id', 1), ('is_read', 1)])
-            app.config['db_notifications'].create_index('created_at')
-            
-            print("✓ MongoDB collections initialized successfully")
+            try:
+                db = client[settings.mongodb_db]
+
+                # Store collections in app config for routes to access
+                app.config['db_users'] = db['users']
+                app.config['db_products'] = db['products']
+                app.config['db_orders'] = db['orders']
+                app.config['db_reviews'] = db['reviews']
+
+                # Create indexes for better performance
+                app.config['db_users'].create_index('email', unique=True)
+                app.config['db_products'].create_index([('name', 'text'), ('description', 'text')])
+                app.config['db_products'].create_index('category')
+                app.config['db_products'].create_index('is_active')
+                app.config['db_orders'].create_index('user_id')
+                app.config['db_orders'].create_index('status')
+                app.config['db_reviews'].create_index('product_id')
+                app.config['db_reviews'].create_index('user_id')
+
+                # Forum collection
+                app.config['db_forum'] = db['forum']
+                app.config['db_forum'].create_index('category')
+                app.config['db_forum'].create_index('is_published')
+                app.config['db_forum'].create_index([('title', 'text'), ('content', 'text')])
+
+                # Harvest pins collection (Harvest Map)
+                app.config['db_harvest_pins'] = db['harvest_pins']
+                app.config['db_harvest_pins'].create_index([('latitude', 1), ('longitude', 1)])
+                app.config['db_harvest_pins'].create_index('pin_type')
+                app.config['db_harvest_pins'].create_index('is_active')
+                app.config['db_harvest_pins'].create_index('created_by')
+
+                # Notifications collection
+                app.config['db_notifications'] = db['notifications']
+                app.config['db_notifications'].create_index('user_id')
+                app.config['db_notifications'].create_index('is_read')
+                app.config['db_notifications'].create_index([('user_id', 1), ('is_read', 1)])
+                app.config['db_notifications'].create_index('created_at')
+
+                print("✓ MongoDB collections initialized successfully")
+            finally:
+                client.close()
         except Exception as e:
             print(f"✗ Failed to initialize MongoDB: {e}")
             app.config['db_users'] = None
@@ -1139,8 +1143,10 @@ def predictions():
         return jsonify({"ok": False, "error": "Authentication required"}), 401
 
     try:
-        limit = int(request.args.get("limit", "50"))
-    except ValueError:
+        limit_raw = request.args.get("limit", "50")
+        limit = int(limit_raw) if str(limit_raw).lstrip('-').isdigit() else 50
+        limit = max(1, min(limit, 200))
+    except (ValueError, AttributeError):
         limit = 50
 
     category = str(request.args.get("category", "")).strip().lower() or None
@@ -1236,9 +1242,10 @@ if __name__ == "__main__":
             s.settimeout(2)
             s.connect(('8.8.8.8', 80))
             ip = s.getsockname()[0]
+            s.shutdown(_socket.SHUT_RDWR)
             s.close()
             return ip
-        except Exception:
+        except OSError:
             return '127.0.0.1'
     _local_ip = _get_local_ip()
     print("\n" + "="*60)
