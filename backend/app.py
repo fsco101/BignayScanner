@@ -194,48 +194,48 @@ def init_database():
                 app.config['db_reviews'] = db['reviews']
 
                 # Create indexes for better performance
-                app.config['db_users'].create_index('email', unique=True)
+                app.config['db_users'].create_index('email', unique=True, background=True)
                 
                 # Product indexes
-                app.config['db_products'].create_index([('name', 'text'), ('description', 'text')])
-                app.config['db_products'].create_index('category')
-                app.config['db_products'].create_index('is_active')
-                app.config['db_products'].create_index('created_at')
-                app.config['db_products'].create_index('sales_count')
-                app.config['db_products'].create_index('average_rating')
-                app.config['db_products'].create_index('views')
-                app.config['db_products'].create_index('stock')
+                app.config['db_products'].create_index([('name', 'text'), ('description', 'text')], background=True)
+                app.config['db_products'].create_index('category', background=True)
+                app.config['db_products'].create_index('is_active', background=True)
+                app.config['db_products'].create_index('created_at', background=True)
+                app.config['db_products'].create_index('sales_count', background=True)
+                app.config['db_products'].create_index('average_rating', background=True)
+                app.config['db_products'].create_index('views', background=True)
+                app.config['db_products'].create_index('stock', background=True)
                 
                 # Order indexes
-                app.config['db_orders'].create_index('user_id')
-                app.config['db_orders'].create_index('status')
-                app.config['db_orders'].create_index('created_at')
+                app.config['db_orders'].create_index('user_id', background=True)
+                app.config['db_orders'].create_index('status', background=True)
+                app.config['db_orders'].create_index('created_at', background=True)
                 
                 # Review indexes
-                app.config['db_reviews'].create_index('product_id')
-                app.config['db_reviews'].create_index('user_id')
-                app.config['db_reviews'].create_index('created_at')
-                app.config['db_reviews'].create_index('rating')
+                app.config['db_reviews'].create_index('product_id', background=True)
+                app.config['db_reviews'].create_index('user_id', background=True)
+                app.config['db_reviews'].create_index('created_at', background=True)
+                app.config['db_reviews'].create_index('rating', background=True)
 
                 # Forum collection
                 app.config['db_forum'] = db['forum']
-                app.config['db_forum'].create_index('category')
-                app.config['db_forum'].create_index('is_published')
-                app.config['db_forum'].create_index([('title', 'text'), ('content', 'text')])
+                app.config['db_forum'].create_index('category', background=True)
+                app.config['db_forum'].create_index('is_published', background=True)
+                app.config['db_forum'].create_index([('title', 'text'), ('content', 'text')], background=True)
 
                 # Harvest pins collection (Harvest Map)
                 app.config['db_harvest_pins'] = db['harvest_pins']
-                app.config['db_harvest_pins'].create_index([('latitude', 1), ('longitude', 1)])
-                app.config['db_harvest_pins'].create_index('pin_type')
-                app.config['db_harvest_pins'].create_index('is_active')
-                app.config['db_harvest_pins'].create_index('created_by')
+                app.config['db_harvest_pins'].create_index([('latitude', 1), ('longitude', 1)], background=True)
+                app.config['db_harvest_pins'].create_index('pin_type', background=True)
+                app.config['db_harvest_pins'].create_index('is_active', background=True)
+                app.config['db_harvest_pins'].create_index('created_by', background=True)
 
                 # Notifications collection
                 app.config['db_notifications'] = db['notifications']
-                app.config['db_notifications'].create_index('user_id')
-                app.config['db_notifications'].create_index('is_read')
-                app.config['db_notifications'].create_index([('user_id', 1), ('is_read', 1)])
-                app.config['db_notifications'].create_index('created_at')
+                app.config['db_notifications'].create_index('user_id', background=True)
+                app.config['db_notifications'].create_index('is_read', background=True)
+                app.config['db_notifications'].create_index([('user_id', 1), ('is_read', 1)], background=True)
+                app.config['db_notifications'].create_index('created_at', background=True)
 
                 print("✓ MongoDB collections initialized successfully")
             finally:
