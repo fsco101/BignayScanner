@@ -1380,7 +1380,7 @@ export default function App() {
                 prefixes: ['bignay://', 'exp://'],
                 config: {
                   screens: {
-                    Landing: '',
+                    Landing: 'welcome',
                     Main: {
                       path: '',
                       screens: {
